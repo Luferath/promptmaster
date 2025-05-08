@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Construtor de Prompt Mestre</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .container > p {
+            text-align: center;
+            color: #555;
+            margin-bottom: 25px;
+        }
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab-link {
+            padding: 10px 15px;
+            cursor: pointer;
+            border: none;
+            background-color: transparent;
+            font-size: 1em;
+            margin-right: 5px;
+            margin-bottom: -1px; /* Alinha com a borda inferior */
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .tab-link.active {
+            border-bottom-color: #3498db;
+            font-weight: bold;
+            color: #3498db;
+        }
+        .tab-link:hover {
+            background-color: #ecf0f1;
+            color: #2980b9;
+        }
+        .tab-content {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+            background-color: #fff;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        .form-group input[type="text"],
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 0.95em;
+        }
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        button#generatePromptBtn,
+        button#askAIBtn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s ease;
+        }
+        button#generatePromptBtn:hover,
+        button#askAIBtn:hover {
+            background-color: #2980b9;
+        }
+        .output-section,
+        .ai-test-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        #masterPromptOutput {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: monospace;
+            font-size: 0.9em;
+            background-color: #f9f9f9;
+        }
+        #userQuestion {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+        .ai-test-section label[for="userQuestion"] {
+            font-weight: bold;
+            color: #555;
+            display: block;
+            margin-bottom: 5px;
+        }
+        #aiSimulationOutputContainer {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+        #aiSimulationOutput {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: monospace;
+            font-size: 0.9em;
+            background-color: #fff;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .disclaimer {
+            font-size: 0.85em;
+            color: #6c757d;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border: 1px dashed #adb5bd;
+            border-radius: 4px;
+        }
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+            .tabs {
+                flex-direction: column;
+            }
+            .tab-link {
+                margin-right: 0;
+                margin-bottom: 5px;
+                border-bottom: 1px solid #ddd; /* Ajuste para abas empilhadas */
+            }
+            .tab-link.active {
+                border-bottom-color: #3498db; /* Mantém o indicador ativo claro */
+            }
+        }
+         @media (max-width: 480px) {
+            h1 {
+                font-size: 1.5em;
+            }
+            .tab-link {
+                padding: 8px 10px;
+                font-size: 0.9em;
+            }
+            button#generatePromptBtn,
+            button#askAIBtn {
+                font-size: 1em;
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Construtor de Prompt Mestre</h1>
+        <p>Crie um Prompt Mestre abrangente para alavancar a IA como um parceiro estratégico para o seu negócio. Preencha os detalhes abaixo para gerar seu prompt personalizado.</p>
+        <div class="tabs">
+            <button class="tab-link active" data-tab="personal">Pessoal</button>
+            <button class="tab-link" data-tab="company">Empresa</button>
+            <button class="tab-link" data-tab="market">Mercado</button>
+            <button class="tab-link" data-tab="team">Equipe</button>
+            <button class="tab-link" data-tab="products">Produtos/Serviços</button>
+            <button class="tab-link" data-tab="culture">Cultura</button>
+        </div>
+        <div id="form-sections">
+            <div id="personal" class="tab-content active">
+                <h2>Pessoal</h2>
+                <div class="form-group">
+                    <label for="p_role">Seu Cargo:</label>
+                    <input type="text" id="p_role" placeholder="ex: CEO, Gerente de Marketing, Fundador">
+                </div>
+                <div class="form-group">
+                    <label for="p_ai_help">Como você quer que a IA te ajude:</label>
+                    <textarea id="p_ai_help" placeholder="ex: Brainstorm de estratégias de marketing, redigir e-mails, analisar tendências de mercado"></textarea>
+                </div>
+            </div>
+            <div id="company" class="tab-content">
+                <h2>Empresa</h2>
+                <div class="form-group">
+                    <label for="c_name">Nome da Empresa:</label>
+                    <input type="text" id="c_name" placeholder="Sua Empresa Ltda.">
+                </div>
+                <div class="form-group">
+                    <label for="c_established">Quando a empresa foi estabelecida?</label>
+                    <input type="text" id="c_established" placeholder="ex: 2015, Q2 2020">
+                </div>
+                <div class="form-group">
+                    <label for="c_employees">Quantos funcionários?</label>
+                    <input type="text" id="c_employees" placeholder="ex: 1-10, 50, 100+">
+                </div>
+                <div class="form-group">
+                    <label for="c_description">Breve Descrição da Empresa:</label>
+                    <textarea id="c_description" placeholder="O que sua empresa faz, seu setor e seus objetivos principais."></textarea>
+                </div>
+            </div>
+            <div id="market" class="tab-content">
+                <h2>Mercado</h2>
+                <div class="form-group">
+                    <label for="m_competitors">Quem são seus concorrentes?</label>
+                    <textarea id="m_competitors" placeholder="Liste os principais concorrentes e seus pontos fortes/fracos."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="m_ideal_customer">Quem é seu cliente ideal?</label>
+                    <textarea id="m_ideal_customer" placeholder="Descreva seu público-alvo, dados demográficos, psicográficos, pontos problemáticos."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="m_opportunity">Tamanho/Oportunidade de Mercado:</label>
+                    <textarea id="m_opportunity" placeholder="Descreva o tamanho potencial do mercado, tendências e oportunidades de crescimento."></textarea>
+                </div>
+            </div>
+            <div id="team" class="tab-content">
+                <h2>Equipe</h2>
+                <div class="form-group">
+                    <label for="t_members_roles">Principais Membros da Equipe e Cargos:</label>
+                    <textarea id="t_members_roles" placeholder="ex: João Silva - CTO (Líder Técnico), Maria Souza - CMO (Chefe de Marketing)"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="t_strengths">Pontos Fortes da Equipe:</label>
+                    <textarea id="t_strengths" placeholder="Quais são os pontos fortes coletivos da sua equipe?"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="t_development">Áreas para Desenvolvimento da Equipe:</label>
+                    <textarea id="t_development" placeholder="Onde a equipe precisa crescer ou melhorar?"></textarea>
+                </div>
+            </div>
+            <div id="products" class="tab-content">
+                <h2>Produtos/Serviços</h2>
+                <div class="form-group">
+                    <label for="ps_main_offerings">Principais Produtos/Serviços Oferecidos:</label>
+                    <textarea id="ps_main_offerings" placeholder="Liste e descreva brevemente suas principais ofertas."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="ps_usp">Proposta Única de Venda (PUV):</label>
+                    <textarea id="ps_usp" placeholder="O que torna seus produtos/serviços únicos e valiosos em comparação com os concorrentes?"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="ps_pricing">Estratégia de Precificação:</label>
+                    <textarea id="ps_pricing" placeholder="ex: Freemium, Baseado em assinatura, Compra única, Baseado em valor."></textarea>
+                </div>
+            </div>
+            <div id="culture" class="tab-content">
+                <h2>Cultura</h2>
+                <div class="form-group">
+                    <label for="cu_core_values">Valores Fundamentais:</label>
+                    <textarea id="cu_core_values" placeholder="Liste 3-5 valores fundamentais que guiam sua empresa."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="cu_mission">Declaração de Missão:</label>
+                    <textarea id="cu_mission" placeholder="A declaração de missão da sua empresa."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="cu_bhag">BHAG (Grande Meta Audaciosa e Cabeluda):</label>
+                    <textarea id="cu_bhag" placeholder="A meta ambiciosa de longo prazo da sua empresa."></textarea>
+                </div>
+            </div>
+        </div>
+        <button id="generatePromptBtn">Gerar Prompt Mestre</button>
+        <div class="output-section">
+            <h2>Prompt Mestre Gerado</h2>
+            <textarea id="masterPromptOutput" readonly rows="15" placeholder="Seu Prompt Mestre gerado aparecerá aqui..."></textarea>
+        </div>
+        <div class="ai-test-section">
+            <h2>Teste Seu Prompt Mestre (Simulação)</h2>
+            <div class="form-group">
+                <label for="userQuestion">Sua Pergunta:</label>
+                <input type="text" id="userQuestion" placeholder="ex: Sugira três slogans de marketing para o meu produto.">
+            </div>
+            <button id="askAIBtn">Perguntar à IA (Simular)</button>
+            
+            <div id="aiSimulationOutputContainer" style="display:none;">
+                <h3>Entrada Simulada para IA:</h3>
+                <pre id="aiSimulationOutput"></pre>
+                <p class="disclaimer">
+                    <strong>Aviso:</strong> Este aplicativo não interage realmente com uma IA.
+                    O texto acima mostra como seu Prompt Mestre e sua pergunta seriam combinados como entrada para uma IA.
+                    O comportamento final de qualquer IA depende do modelo específico da IA e do seu treinamento.
+                    Este exercício destina-se a ilustrar como o contexto pode ser efetivamente entregue a uma IA.
+                </p>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tabLinks = document.querySelectorAll('.tab-link');
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    const tabId = link.getAttribute('data-tab');
+                    tabLinks.forEach(l => l.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    link.classList.add('active');
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+            const formSections = [
+                { 
+                    id: 'personal', title: 'PESSOAL', 
+                    fields: [
+                        { id: 'p_role', label: 'Seu Cargo' },
+                        { id: 'p_ai_help', label: 'Como você quer que a IA te ajude' }
+                    ] 
+                },
+                { 
+                    id: 'company', title: 'EMPRESA', 
+                    fields: [
+                        { id: 'c_name', label: 'Nome da Empresa' },
+                        { id: 'c_established', label: 'Empresa Estabelecida em' },
+                        { id: 'c_employees', label: 'Número de Funcionários' },
+                        { id: 'c_description', label: 'Descrição da Empresa' }
+                    ] 
+                },
+                { 
+                    id: 'market', title: 'MERCADO', 
+                    fields: [
+                        { id: 'm_competitors', label: 'Concorrentes' },
+                        { id: 'm_ideal_customer', label: 'Cliente Ideal' },
+                        { id: 'm_opportunity', label: 'Tamanho/Oportunidade de Mercado' }
+                    ] 
+                },
+                { 
+                    id: 'team', title: 'EQUIPE', 
+                    fields: [
+                        { id: 't_members_roles', label: 'Principais Membros da Equipe e Cargos' },
+                        { id: 't_strengths', label: 'Pontos Fortes da Equipe' },
+                        { id: 't_development', label: 'Áreas para Desenvolvimento da Equipe' }
+                    ] 
+                },
+                { 
+                    id: 'products', title: 'PRODUTOS/SERVIÇOS', 
+                    fields: [
+                        { id: 'ps_main_offerings', label: 'Principais Produtos/Serviços' },
+                        { id: 'ps_usp', label: 'Proposta Única de Venda (PUV)' },
+                        { id: 'ps_pricing', label: 'Estratégia de Precificação' }
+                    ] 
+                },
+                { 
+                    id: 'culture', title: 'CULTURA', 
+                    fields: [
+                        { id: 'cu_core_values', label: 'Valores Fundamentais' },
+                        { id: 'cu_mission', label: 'Declaração de Missão' },
+                        { id: 'cu_bhag', label: 'BHAG (Grande Meta Audaciosa e Cabeluda)' }
+                    ] 
+                }
+            ];
+            const generatePromptBtn = document.getElementById('generatePromptBtn');
+            const masterPromptOutput = document.getElementById('masterPromptOutput');
+            generatePromptBtn.addEventListener('click', () => {
+                let prompt = "PROMPT MESTRE PARA PARCEIRO ESTRATÉGICO DE IA:\n\n";
+                prompt += "A informação a seguir descreve o contexto do meu negócio. Por favor, use isso como base para suas respostas, conselhos e geração de conteúdo.\n\n";
+                formSections.forEach(section => {
+                    let sectionContent = "";
+                    section.fields.forEach(field => {
+                        const element = document.getElementById(field.id);
+                        if (element && element.value.trim() !== '') {
+                            sectionContent += `${field.label}: ${element.value.trim()}\n`;
+                        }
+                    });
+                    if (sectionContent) {
+                        prompt += `--- ${section.title} ---\n`;
+                        prompt += sectionContent + "\n";
+                    }
+                });
+                
+                if (prompt.trim() === "PROMPT MESTRE PARA PARCEIRO ESTRATÉGICO DE IA:\n\nA informação a seguir descreve o contexto do meu negócio. Por favor, use isso como base para suas respostas, conselhos e geração de conteúdo.") {
+                    prompt += "Nenhuma informação fornecida ainda. Por favor, preencha os campos do formulário.";
+                }
+                masterPromptOutput.value = prompt.trim();
+            });
+            const askAIBtn = document.getElementById('askAIBtn');
+            const userQuestionInput = document.getElementById('userQuestion');
+            const aiSimulationOutput = document.getElementById('aiSimulationOutput');
+            const aiSimulationOutputContainer = document.getElementById('aiSimulationOutputContainer');
+            askAIBtn.addEventListener('click', () => {
+                const masterPromptText = masterPromptOutput.value;
+                const userQuestion = userQuestionInput.value.trim();
+                if (!userQuestion) {
+                    alert('Por favor, insira uma pergunta para fazer à IA.');
+                    return;
+                }
+                
+                let combinedInput = "";
+                if (masterPromptText && masterPromptText !== "Nenhuma informação fornecida ainda. Por favor, preencha os campos do formulário." && masterPromptText !== "PROMPT MESTRE PARA PARCEIRO ESTRATÉGICO DE IA:\n\nA informação a seguir descreve o contexto do meu negócio. Por favor, use isso como base para suas respostas, conselhos e geração de conteúdo.") {
+                    combinedInput += masterPromptText + "\n\n";
+                } else {
+                     combinedInput += "CONTEXTO: (Nenhum Prompt Mestre fornecido ou o Prompt Mestre está vazio)\n\n";
+                }
+                
+                combinedInput += "--- MINHA PERGUNTA ---\n" + userQuestion;
+                aiSimulationOutput.textContent = combinedInput;
+                aiSimulationOutputContainer.style.display = 'block';
+            });
+        });
+    </script>
+</body>
+</html>
